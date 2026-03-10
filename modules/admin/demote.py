@@ -1,6 +1,8 @@
 from pyrogram import Client, filters
 from pyrogram.types import Message
 
+from database.promote_db import is_promoted, remove_promoted
+
 
 @Client.on_message(filters.command("demote") & filters.group)
 async def demote_user(client: Client, message: Message):
@@ -10,7 +12,6 @@ async def demote_user(client: Client, message: Message):
             "Reply to a user or give username/user id."
         )
 
-    # user detect
     if message.reply_to_message:
         user = message.reply_to_message.from_user
     else:
@@ -19,12 +20,9 @@ async def demote_user(client: Client, message: Message):
         except:
             return await message.reply_text("User not found.")
 
-    # check promoted by bot
-    promoted = Bot.getProperty(f"promoted_{message.chat.id}_{user.id}")
-
-    if not promoted:
+    if not await is_promoted(message.chat.id, user.id):
         return await message.reply_text(
-            "This user was not promoted by me."
+            "This admin was not promoted by me."
         )
 
     try:
@@ -45,7 +43,7 @@ async def demote_user(client: Client, message: Message):
 
         )
 
-        Bot.deleteProperty(f"promoted_{message.chat.id}_{user.id}")
+        await remove_promoted(message.chat.id, user.id)
 
     except:
         return await message.reply_text(
