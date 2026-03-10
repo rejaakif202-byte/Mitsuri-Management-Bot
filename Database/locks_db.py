@@ -1,4 +1,32 @@
 locks = {}
+approved_users = {}
+
+
+async def approve_user(chat_id, user_id):
+
+    if chat_id not in approved_users:
+        approved_users[chat_id] = []
+
+    if user_id not in approved_users[chat_id]:
+        approved_users[chat_id].append(user_id)
+
+
+async def unapprove_user(chat_id, user_id):
+
+    if chat_id in approved_users:
+
+        if user_id in approved_users[chat_id]:
+            approved_users[chat_id].remove(user_id)
+
+
+async def is_approved(chat_id, user_id):
+
+    if chat_id in approved_users:
+
+        if user_id in approved_users[chat_id]:
+            return True
+
+    return False
 
 
 async def add_lock(chat_id, lock):
