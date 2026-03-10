@@ -8,10 +8,11 @@ from database.deledit_db import (
     get_edit_settings,
     set_timer
 )
+
 from database.approve_db import is_approved
 
 
-# ---------------- /deleditmsg ---------------- #
+# /deleditmsg
 
 @Client.on_message(filters.command("deleditmsg") & filters.group)
 async def editmsg_settings(client, message: Message):
@@ -32,7 +33,7 @@ async def editmsg_settings(client, message: Message):
     )
 
 
-# ---------------- BUTTON HANDLER ---------------- #
+# BUTTON HANDLER
 
 @Client.on_callback_query(filters.regex("editmsg_"))
 async def editmsg_toggle(client, query):
@@ -48,7 +49,7 @@ async def editmsg_toggle(client, query):
         await query.message.edit_text("<b>Edited message delete system disabled</b>")
 
 
-# ---------------- TIMER COMMAND ---------------- #
+# TIMER COMMAND
 
 @Client.on_message(filters.command("setdelmsgtimer") & filters.group)
 async def set_timer_command(client, message: Message):
@@ -67,7 +68,7 @@ async def set_timer_command(client, message: Message):
     )
 
 
-# ---------------- TIMER BUTTON ---------------- #
+# TIMER BUTTON
 
 @Client.on_callback_query(filters.regex("timer_"))
 async def timer_buttons(client, query):
@@ -112,7 +113,7 @@ async def timer_buttons(client, query):
         await query.message.delete()
 
 
-# ---------------- EDIT DETECTION ---------------- #
+# EDIT DETECTION
 
 @Client.on_edited_message(filters.group)
 async def detect_edit(client, message: Message):
