@@ -1,37 +1,34 @@
 from pyrogram import Client, filters
 from pyrogram.types import Message
 
+from database.promote_db import get_promoted, remove_promoted
+
 
 @Client.on_message(filters.command("demoteall") & filters.group)
 async def demote_all(client: Client, message: Message):
 
-    admins = await client.get_chat_members(
+    member = await client.get_chat_member(
         message.chat.id,
-        filter="administrators"
+        message.from_user.id
     )
+
+    if member.status != "creator":
+        return await message.reply_text(
+            "Only group owner can use this command."
+        )
+
+    promoted_users = await get_promoted(message.chat.id)
 
     count = 0
 
-    async for admin in admins:
-
-        user = admin.user
-
-        if admin.status == "creator":
-            continue
-
-        promoted = Bot.getProperty(
-            f"promoted_{message.chat.id}_{user.id}"
-        )
-
-        if not promoted:
-            continue
+    for user_id in promoted_users:
 
         try:
 
             await client.promote_chat_member(
 
                 message.chat.id,
-                user.id,
+                user_id,
 
                 can_change_info=False,
                 can_delete_messages=False,
@@ -44,9 +41,7 @@ async def demote_all(client: Client, message: Message):
 
             )
 
-            Bot.deleteProperty(
-                f"promoted_{message.chat.id}_{user.id}"
-            )
+            await remove_promoted(message.chat.id, user_id)
 
             count += 1
 
