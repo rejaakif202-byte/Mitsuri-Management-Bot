@@ -65,6 +65,8 @@ async def promote_user(client: Client, message: Message):
 
         )
 
+    Bot.setProperty(f"promoted_{message.chat.id}_{user.id}", True)
+
     except:
         return await message.reply_text(
             "I need full admin rights to promote users."
