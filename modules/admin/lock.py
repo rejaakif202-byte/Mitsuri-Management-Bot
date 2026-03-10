@@ -1,7 +1,9 @@
 from pyrogram import Client, filters
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
+
 from utils.permissions import is_admin
 from database.locks_db import add_lock, remove_lock, get_locks
+from database.approve_db import is_approved
 
 
 LOCK_TYPES = [
@@ -71,6 +73,9 @@ async def locktypes(client, message: Message):
         if i % 3 == 0:
             buttons.append(row)
             row = []
+
+    if row:
+        buttons.append(row)
 
     keyboard = InlineKeyboardMarkup(buttons)
 
