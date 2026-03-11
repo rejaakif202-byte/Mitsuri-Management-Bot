@@ -1,11 +1,20 @@
-async def is_admin(client, message):
+from pyrogram.types import Message
 
-    if not message.from_user:
+
+async def is_admin(client, message: Message):
+
+    user = message.from_user
+
+    if not user:
         return False
 
-    member = await client.get_chat_member(
-        message.chat.id,
-        message.from_user.id
+    member = await client.get_chat_member(message.chat.id, user.id)
+
+    if member.status in ["administrator", "creator"]:
+        return True
+
+    await message.reply_text(
+        "<b>You must be an admin to use this command.</b>"
     )
 
-    return member.status in ["administrator", "creator"]
+    return False
