@@ -4,55 +4,67 @@ from telegram.ext import ApplicationBuilder
 from config import BOT_TOKEN
 
 
-# ================= BOT START =================
-
 app = ApplicationBuilder().token(BOT_TOKEN).build()
 
 
-# ================= LOAD MODULES =================
-
-MODULES = [
+# folders jaha modules hain
+MODULE_FOLDERS = [
     "modules.admin",
     "modules.members",
-    "modules.sudo",
-    "modules.media"
+    "modules.sudo"
+]
+
+# single modules
+ROOT_MODULES = [
+    "modules.broadcast",
+    "modules.users_saver"
 ]
 
 
 def load_modules():
 
-    for module in MODULES:
+    # folder modules load
+    for folder in MODULE_FOLDERS:
 
-        path = module.replace(".", "/")
-
-        if not os.path.isdir(path):
-            continue
+        path = folder.replace(".", "/")
 
         for file in os.listdir(path):
 
             if file.endswith(".py") and not file.startswith("__"):
 
-                module_name = f"{module}.{file[:-3]}"
+                module_name = f"{folder}.{file[:-3]}"
 
                 try:
-                    imported = importlib.import_module(module_name)
+                    module = importlib.import_module(module_name)
 
-                    if hasattr(imported, "setup"):
-                        imported.setup(app)
+                    if hasattr(module, "setup"):
+                        module.setup(app)
 
                     print(f"Loaded {module_name}")
 
                 except Exception as e:
-                    print(f"Failed to load {module_name} : {e}")
+                    print(f"Failed {module_name} → {e}")
 
+    # single modules load
+    for module_name in ROOT_MODULES:
 
-# ================= MAIN =================
+        try:
+            module = importlib.import_module(module_name)
+
+            if hasattr(module, "setup"):
+                module.setup(app)
+
+            print(f"Loaded {module_name}")
+
+        except Exception as e:
+            print(f"Failed {module_name} → {e}")
+
 
 def main():
 
     load_modules()
 
-    print("StrawHatManagerBot Started")
+    print("StrawHatManagerBot Started Successfully")
 
     app.run_polling()
 
