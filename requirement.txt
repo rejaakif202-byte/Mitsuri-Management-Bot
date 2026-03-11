@@ -1,0 +1,11 @@
+pyrogram
+tgcrypto
+motor
+pymongo
+python-dotenv
+requests
+aiohttp
+openai
+yt-dlp
+beautifulsoup4
+pillow
