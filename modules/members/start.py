@@ -4,10 +4,10 @@ from telegram.ext import ContextTypes
 from database.users import add_user
 from utils.uptime import get_uptime
 
-START_IMAGE = "PASTE_START_IMAGE_LINK_HERE"
+START_IMAGE = "https://files.catbox.moe/45n49c.mp4"
 
-SUPPORT = "https://t.me/YOUR_SUPPORT_CHANNEL"
-CREATOR = "https://t.me/YOUR_USERNAME"
+SUPPORT = "https://t.me/ANIMEXVERSE"
+CREATOR = "tg://openmessage?user_id=7846306818"
 
 DM_TEXT = """Hey There, {mention}!? This is {mention_of_bot_name}.
 
