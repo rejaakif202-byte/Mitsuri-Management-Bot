@@ -11,43 +11,47 @@ from utils.permissions import is_admin
 from database.approve_db import is_approved
 
 
-# ADD BLACKLIST
+# ---------------- ADD BLACKLIST ---------------- #
 
 @Client.on_message(filters.command("blacklist") & filters.group)
 async def blacklist_word(client: Client, message: Message):
 
     if not await is_admin(client, message):
-        return await message.reply_text("<b>You are not allowed to use this command</b>")
+        return
 
     if len(message.command) < 2:
-        return await message.reply_text("<b>Give a word or item to blacklist</b>")
+        return await message.reply_text("<b>Give a word to blacklist</b>")
 
-    word = message.text.split(None, 1)[1]
+    word = message.text.split(None, 1)[1].strip().lower()
 
     await add_blacklist(message.chat.id, word)
 
-    await message.reply_text(f"<b>{word} has been added to blacklist</b>")
+    await message.reply_text(
+        f"<b>{word} has been added to blacklist.</b>"
+    )
 
 
-# REMOVE BLACKLIST
+# ---------------- REMOVE BLACKLIST ---------------- #
 
 @Client.on_message(filters.command("unblacklist") & filters.group)
 async def unblacklist_word(client: Client, message: Message):
 
     if not await is_admin(client, message):
-        return await message.reply_text("<b>You are not allowed to use this command</b>")
+        return
 
     if len(message.command) < 2:
-        return await message.reply_text("<b>Give a word to remove from blacklist</b>")
+        return await message.reply_text("<b>Give a word to remove</b>")
 
-    word = message.text.split(None, 1)[1]
+    word = message.text.split(None, 1)[1].strip().lower()
 
     await remove_blacklist(message.chat.id, word)
 
-    await message.reply_text(f"<b>{word} removed from blacklist</b>")
+    await message.reply_text(
+        f"<b>{word} removed from blacklist.</b>"
+    )
 
 
-# SHOW BLACKLIST
+# ---------------- SHOW BLACKLIST ---------------- #
 
 @Client.on_message(filters.command("allblacklist") & filters.group)
 async def show_blacklist(client: Client, message: Message):
@@ -55,7 +59,9 @@ async def show_blacklist(client: Client, message: Message):
     words = await get_blacklist(message.chat.id)
 
     if not words:
-        return await message.reply_text("<b>No blacklisted items in this chat</b>")
+        return await message.reply_text(
+            "<b>No blacklisted items in this chat.</b>"
+        )
 
     text = "<b>Blacklisted items in this chat:</b>\n\n"
 
@@ -65,18 +71,26 @@ async def show_blacklist(client: Client, message: Message):
     await message.reply_text(text)
 
 
-# MESSAGE CHECKER
+# ---------------- BLACKLIST CHECKER ---------------- #
 
-@Client.on_message(filters.group)
+@Client.on_message(filters.group & filters.text)
 async def check_blacklist(client: Client, message: Message):
 
-    if not message.text:
+    if not message.from_user:
         return
 
-    if await is_admin(client, message):
+    user_id = message.from_user.id
+
+    # skip admins
+    try:
+        member = await client.get_chat_member(message.chat.id, user_id)
+        if member.status in ["administrator", "creator"]:
+            return
+    except:
         return
 
-    if await is_approved(message.chat.id, message.from_user.id):
+    # skip approved users
+    if await is_approved(message.chat.id, user_id):
         return
 
     words = await get_blacklist(message.chat.id)
@@ -88,7 +102,7 @@ async def check_blacklist(client: Client, message: Message):
 
     for word in words:
 
-        if word.lower() in text:
+        if word in text:
 
             try:
                 await message.delete()
