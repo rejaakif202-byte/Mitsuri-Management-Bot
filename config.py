@@ -21,3 +21,4 @@ LOG_GROUP = int(os.getenv("LOG_GROUP", 0))
 # ================= DATABASE ================= #
 
 MONGO_URL = os.getenv("MONGO_URL", "")
+DATABASE_NAME = os.getenv("DATABASE_NAME", "Mitsuri")
