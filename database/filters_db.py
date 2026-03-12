@@ -1,39 +1,80 @@
-filters_db = {}
+from motor.motor_asyncio import AsyncIOMotorClient
+from config import MONGO_URL, DATABASE_NAME
 
+mongo = AsyncIOMotorClient(MONGO_URL)
+db = mongo[DATABASE_NAME]
+
+filters = db["filters"]
+
+
+# ADD FILTER
 
 async def add_filter(chat_id, word, text=None, buttons=None, media=None):
 
-    if chat_id not in filters_db:
-        filters_db[chat_id] = {}
+    await filters.update_one(
+        {"chat_id": chat_id, "word": word},
+        {
+            "$set": {
+                "text": text,
+                "buttons": buttons,
+                "media": media
+            }
+        },
+        upsert=True
+    )
 
-    filters_db[chat_id][word] = {
-        "text": text,
-        "buttons": buttons,
-        "media": media
-    }
 
+# REMOVE FILTER
 
 async def remove_filter(chat_id, word):
 
-    if chat_id in filters_db:
-        if word in filters_db[chat_id]:
-            del filters_db[chat_id][word]
+    await filters.delete_one({
+        "chat_id": chat_id,
+        "word": word
+    })
 
+
+# REMOVE ALL FILTERS
 
 async def remove_all_filters(chat_id):
 
-    if chat_id in filters_db:
-        filters_db[chat_id] = {}
+    await filters.delete_many({
+        "chat_id": chat_id
+    })
 
+
+# GET ALL FILTERS
 
 async def get_filters(chat_id):
 
-    return filters_db.get(chat_id, {})
+    data = filters.find({"chat_id": chat_id})
 
+    result = {}
+
+    async for item in data:
+        result[item["word"]] = {
+            "text": item.get("text"),
+            "buttons": item.get("buttons"),
+            "media": item.get("media")
+        }
+
+    return result
+
+
+# GET SINGLE FILTER
 
 async def get_filter(chat_id, word):
 
-    if chat_id in filters_db:
-        return filters_db[chat_id].get(word)
+    data = await filters.find_one({
+        "chat_id": chat_id,
+        "word": word
+    })
 
-    return None
+    if not data:
+        return None
+
+    return {
+        "text": data.get("text"),
+        "buttons": data.get("buttons"),
+        "media": data.get("media")
+    }
