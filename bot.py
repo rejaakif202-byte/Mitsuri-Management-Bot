@@ -1,10 +1,16 @@
 import os
 import importlib
-from telegram.ext import ApplicationBuilder
-from config import BOT_TOKEN
+
+from pyrogram import Client
+from config import API_ID, API_HASH, BOT_TOKEN
 
 
-app = ApplicationBuilder().token(BOT_TOKEN).build()
+app = Client(
+    "StrawHatManagerBot",
+    api_id=API_ID,
+    api_hash=API_HASH,
+    bot_token=BOT_TOKEN
+)
 
 
 # folders jaha modules hain
@@ -23,10 +29,12 @@ ROOT_MODULES = [
 
 def load_modules():
 
-    # folder modules load
     for folder in MODULE_FOLDERS:
 
         path = folder.replace(".", "/")
+
+        if not os.path.isdir(path):
+            continue
 
         for file in os.listdir(path):
 
@@ -35,25 +43,17 @@ def load_modules():
                 module_name = f"{folder}.{file[:-3]}"
 
                 try:
-                    module = importlib.import_module(module_name)
-
-                    if hasattr(module, "setup"):
-                        module.setup(app)
-
+                    importlib.import_module(module_name)
                     print(f"Loaded {module_name}")
 
                 except Exception as e:
                     print(f"Failed {module_name} → {e}")
 
-    # single modules load
+
     for module_name in ROOT_MODULES:
 
         try:
-            module = importlib.import_module(module_name)
-
-            if hasattr(module, "setup"):
-                module.setup(app)
-
+            importlib.import_module(module_name)
             print(f"Loaded {module_name}")
 
         except Exception as e:
@@ -66,7 +66,7 @@ def main():
 
     print("StrawHatManagerBot Started Successfully")
 
-    app.run_polling()
+    app.run()
 
 
 if __name__ == "__main__":
