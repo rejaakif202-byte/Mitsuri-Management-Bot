@@ -1,37 +1,68 @@
-goodbye_db = {}
+from motor.motor_asyncio import AsyncIOMotorClient
+from config import MONGO_URL, DATABASE_NAME
 
+mongo = AsyncIOMotorClient(MONGO_URL)
+db = mongo[DATABASE_NAME]
+
+goodbye = db["goodbye"]
+
+
+# ENABLE / DISABLE GOODBYE
 
 async def toggle_goodbye(chat_id, state):
 
-    if chat_id not in goodbye_db:
-        goodbye_db[chat_id] = {}
+    await goodbye.update_one(
+        {"chat_id": chat_id},
+        {"$set": {"enabled": state}},
+        upsert=True
+    )
 
-    goodbye_db[chat_id]["enabled"] = state
 
+# SET GOODBYE MESSAGE
 
 async def set_goodbye(chat_id, message):
 
-    if chat_id not in goodbye_db:
-        goodbye_db[chat_id] = {}
+    text = message.text or message.caption
 
-    goodbye_db[chat_id]["text"] = message.text or message.caption
+    await goodbye.update_one(
+        {"chat_id": chat_id},
+        {"$set": {"text": text}},
+        upsert=True
+    )
 
+
+# RESET GOODBYE
 
 async def reset_goodbye(chat_id):
 
-    goodbye_db[chat_id] = {
-        "enabled": True,
-        "text": "Goodbye {first_name}, we hope to see you again in {Chatname}"
-    }
+    await goodbye.update_one(
+        {"chat_id": chat_id},
+        {
+            "$set": {
+                "enabled": True,
+                "text": "Goodbye {first_name}, we hope to see you again in {Chatname}"
+            }
+        },
+        upsert=True
+    )
 
+
+# GET GOODBYE SETTINGS
 
 async def get_goodbye(chat_id):
 
-    if chat_id not in goodbye_db:
+    data = await goodbye.find_one({"chat_id": chat_id})
 
-        goodbye_db[chat_id] = {
+    if not data:
+
+        default = {
+            "chat_id": chat_id,
             "enabled": True,
             "text": "Goodbye {first_name}, we hope to see you again in {Chatname}"
         }
 
-    return goodbye_db[chat_id]
+        await goodbye.insert_one(default)
+
+        return default
+
+    return data
