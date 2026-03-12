@@ -1,9 +1,5 @@
 from pyrogram import Client, filters
-from pyrogram.types import (
-    Message,
-    InlineKeyboardMarkup,
-    InlineKeyboardButton
-)
+from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 
 from database.welcome_db import (
     set_welcome,
@@ -25,22 +21,24 @@ async def welcome_settings(client, message: Message):
             "<b>You are not allowed to use this command</b>"
         )
 
-    buttons = InlineKeyboardMarkup([
+    buttons = InlineKeyboardMarkup(
         [
-            InlineKeyboardButton("ON", callback_data="welcome_on"),
-            InlineKeyboardButton("OFF", callback_data="welcome_off")
+            [
+                InlineKeyboardButton("ON", callback_data="welcome_on"),
+                InlineKeyboardButton("OFF", callback_data="welcome_off")
+            ]
         ]
-    ])
+    )
 
     await message.reply_text(
-        "<b>Set your welcome here</b>",
+        "<b>Set your welcome system</b>",
         reply_markup=buttons
     )
 
 
 # button handler
 
-@Client.on_callback_query(filters.regex("welcome_"))
+@Client.on_callback_query(filters.regex("^welcome_"))
 async def welcome_toggle(client, query):
 
     chat_id = query.message.chat.id
@@ -62,7 +60,7 @@ async def welcome_toggle(client, query):
         )
 
 
-# /setwelcome
+# /setwelcome command
 
 @Client.on_message(filters.command("setwelcome") & filters.group)
 async def set_welcome_message(client, message: Message):
@@ -86,7 +84,7 @@ async def set_welcome_message(client, message: Message):
     )
 
 
-# /resetwelcome
+# /resetwelcome command
 
 @Client.on_message(filters.command("resetwelcome") & filters.group)
 async def reset_welcome_message(client, message: Message):
@@ -103,7 +101,7 @@ async def reset_welcome_message(client, message: Message):
     )
 
 
-# join event
+# new member join event
 
 @Client.on_message(filters.new_chat_members)
 async def welcome_new_user(client, message: Message):
@@ -118,10 +116,10 @@ async def welcome_new_user(client, message: Message):
         text = data["text"]
 
         text = text.replace("{first_name}", user.first_name or "")
-        text = text.replace("{Last_name}", user.last_name or "")
-        text = text.replace("{Username}", f"@{user.username}" if user.username else "None")
-        text = text.replace("{Uid}", str(user.id))
-        text = text.replace("{Chatname}", message.chat.title)
-        text = text.replace("{Mention}", user.mention)
+        text = text.replace("{last_name}", user.last_name or "")
+        text = text.replace("{username}", f"@{user.username}" if user.username else "None")
+        text = text.replace("{uid}", str(user.id))
+        text = text.replace("{chatname}", message.chat.title)
+        text = text.replace("{mention}", user.mention)
 
         await message.reply_text(text)
