@@ -1,9 +1,9 @@
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import ContextTypes
 
-START_IMAGE = "PASTE_START_IMAGE_LINK_HERE"
+START_IMAGE = "https://files.catbox.moe/45n49c.mp4"
 
-SUPPORT = "https://t.me/YOUR_SUPPORT_CHANNEL"
+SUPPORT = "https://t.me/ANIMEXVERSE"
 
 ADDED_TEXT = """Wassup Groupmates
 
