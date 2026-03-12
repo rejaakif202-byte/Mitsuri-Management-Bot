@@ -115,7 +115,7 @@ async def welcome_new_user(client, message: Message):
 
     for user in message.new_chat_members:
 
-        text = data["text"] me 
+        text = data["text"]
 
         text = text.replace("{first_name}", user.first_name or "")
         text = text.replace("{Last_name}", user.last_name or "")
