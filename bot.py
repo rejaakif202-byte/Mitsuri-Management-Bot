@@ -1,26 +1,25 @@
 import os
 import importlib
+import asyncio
 
-from pyrogram import Client
+from pyrogram import Client, idle
 from config import API_ID, API_HASH, BOT_TOKEN
 
 
 app = Client(
-    "StrawHatManagerBot",
+    "bot",
     api_id=API_ID,
     api_hash=API_HASH,
     bot_token=BOT_TOKEN
 )
 
 
-# folders jaha modules hain
 MODULE_FOLDERS = [
     "modules.admin",
     "modules.members",
     "modules.sudo"
 ]
 
-# single modules
 ROOT_MODULES = [
     "modules.broadcast",
     "modules.users_saver"
@@ -49,7 +48,6 @@ def load_modules():
                 except Exception as e:
                     print(f"Failed {module_name} → {e}")
 
-
     for module_name in ROOT_MODULES:
 
         try:
@@ -60,14 +58,16 @@ def load_modules():
             print(f"Failed {module_name} → {e}")
 
 
-def main():
+async def main():
 
     load_modules()
 
+    await app.start()
+
     print("StrawHatManagerBot Started Successfully")
 
-    app.run()
+    await idle()
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
