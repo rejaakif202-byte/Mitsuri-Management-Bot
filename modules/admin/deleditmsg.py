@@ -12,13 +12,13 @@ from database.deledit_db import (
 from database.approve_db import is_approved
 
 
-# /deleditmsg
+# ---------------- SETTINGS COMMAND ---------------- #
 
 @Client.on_message(filters.command("deleditmsg") & filters.group)
 async def editmsg_settings(client, message: Message):
 
     if not await is_admin(client, message):
-        return await message.reply_text("<b>You are not allowed to use this command</b>")
+        return
 
     buttons = InlineKeyboardMarkup([
         [
@@ -28,15 +28,20 @@ async def editmsg_settings(client, message: Message):
     ])
 
     await message.reply_text(
-        "<b>Set your delete edited message to:</b>",
+        "<b>Set edited message delete system:</b>",
         reply_markup=buttons
     )
 
 
-# BUTTON HANDLER
+# ---------------- BUTTON HANDLER ---------------- #
 
-@Client.on_callback_query(filters.regex("editmsg_"))
+@Client.on_callback_query(filters.regex("^editmsg_"))
 async def editmsg_toggle(client, query):
+
+    member = await client.get_chat_member(query.message.chat.id, query.from_user.id)
+
+    if member.status not in ["administrator", "creator"]:
+        return await query.answer("Admins only!", show_alert=True)
 
     chat_id = query.message.chat.id
 
@@ -49,13 +54,13 @@ async def editmsg_toggle(client, query):
         await query.message.edit_text("<b>Edited message delete system disabled</b>")
 
 
-# TIMER COMMAND
+# ---------------- TIMER COMMAND ---------------- #
 
 @Client.on_message(filters.command("setdelmsgtimer") & filters.group)
 async def set_timer_command(client, message: Message):
 
     if not await is_admin(client, message):
-        return await message.reply_text("<b>You are not allowed to use this command</b>")
+        return
 
     buttons = InlineKeyboardMarkup([
         [InlineKeyboardButton("Increase Timer", callback_data="timer_increase")],
@@ -63,20 +68,26 @@ async def set_timer_command(client, message: Message):
     ])
 
     await message.reply_text(
-        "<b>Set your edited message delete timer</b>",
+        "<b>Set edited message delete timer</b>",
         reply_markup=buttons
     )
 
 
-# TIMER BUTTON
+# ---------------- TIMER BUTTONS ---------------- #
 
-@Client.on_callback_query(filters.regex("timer_"))
+@Client.on_callback_query(filters.regex("^timer_"))
 async def timer_buttons(client, query):
 
+    member = await client.get_chat_member(query.message.chat.id, query.from_user.id)
+
+    if member.status not in ["administrator", "creator"]:
+        return await query.answer("Admins only!", show_alert=True)
+
     chat_id = query.message.chat.id
+
     data = await get_edit_settings(chat_id)
 
-    timer = data["timer"]
+    timer = data.get("timer", 5)
 
     if query.data == "timer_increase":
 
@@ -85,18 +96,21 @@ async def timer_buttons(client, query):
             await set_timer(chat_id, timer)
 
             if timer == 30:
+
                 buttons = InlineKeyboardMarkup([
                     [InlineKeyboardButton("Back To Default", callback_data="timer_reset")],
                     [InlineKeyboardButton("Close", callback_data="timer_close")]
                 ])
 
                 await query.message.edit_text(
-                    f"<b>Your timer is now {timer} minutes\nThis is the maximum limit</b>",
+                    f"<b>Timer set to {timer} minutes\nMaximum limit reached</b>",
                     reply_markup=buttons
                 )
+
             else:
+
                 await query.message.edit_text(
-                    f"<b>Your timer is now {timer} minutes</b>",
+                    f"<b>Timer set to {timer} minutes</b>",
                     reply_markup=query.message.reply_markup
                 )
 
@@ -113,26 +127,38 @@ async def timer_buttons(client, query):
         await query.message.delete()
 
 
-# EDIT DETECTION
+# ---------------- EDIT DETECTION ---------------- #
 
-@Client.on_edited_message(filters.group)
+@Client.on_edited_message(filters.group & filters.text)
 async def detect_edit(client, message: Message):
 
+    if not message.from_user:
+        return
+
     chat_id = message.chat.id
-    user = message.from_user
+    user_id = message.from_user.id
 
     data = await get_edit_settings(chat_id)
 
-    if not data["enabled"]:
+    if not data.get("enabled"):
         return
 
-    if await is_approved(chat_id, user.id):
+    # skip admins
+    try:
+        member = await client.get_chat_member(chat_id, user_id)
+        if member.status in ["administrator", "creator"]:
+            return
+    except:
         return
 
-    timer = data["timer"]
+    # skip approved users
+    if await is_approved(chat_id, user_id):
+        return
+
+    timer = data.get("timer", 5)
 
     warn = await message.reply_text(
-        f"<b>Edit message detected, {user.mention} your message and this message will be deleted in {timer} minutes</b>"
+        f"<b>Edit detected.\n{message.from_user.mention} your message will be deleted in {timer} minutes.</b>"
     )
 
     await asyncio.sleep(timer * 60)
