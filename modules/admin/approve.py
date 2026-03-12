@@ -1,7 +1,7 @@
 from pyrogram import Client, filters
 from pyrogram.types import Message
 
-from utils.permissions import is_admin
+from utils.permissions import is_admin, is_owner
 from database.approve_db import (
     approve_user,
     unapprove_user,
@@ -57,12 +57,12 @@ async def unapprove(client: Client, message: Message):
     )
 
 
-# ---------------- APPROVE ALL ---------------- #
+# ---------------- APPROVE ALL (OWNER ONLY) ---------------- #
 
 @Client.on_message(filters.command("approveall") & filters.group)
 async def approveall(client: Client, message: Message):
 
-    if not await is_admin(client, message):
+    if not await is_owner(client, message):
         return
 
     await approve_all(message.chat.id)
@@ -72,12 +72,12 @@ async def approveall(client: Client, message: Message):
     )
 
 
-# ---------------- UNAPPROVE ALL ---------------- #
+# ---------------- UNAPPROVE ALL (OWNER ONLY) ---------------- #
 
 @Client.on_message(filters.command("unapproveall") & filters.group)
 async def unapproveall(client: Client, message: Message):
 
-    if not await is_admin(client, message):
+    if not await is_owner(client, message):
         return
 
     await unapprove_all(message.chat.id)
