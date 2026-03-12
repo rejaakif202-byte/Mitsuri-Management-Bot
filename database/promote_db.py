@@ -1,30 +1,61 @@
-PROMOTED_ADMINS = {}
+from motor.motor_asyncio import AsyncIOMotorClient
+from config import MONGO_URL
 
+mongo = AsyncIOMotorClient(MONGO_URL)
+db = mongo["management"]
+
+promoted_db = db["promoted_admins"]
+
+
+# ADD PROMOTED ADMIN
 
 async def add_promoted(chat_id, user_id):
 
-    if chat_id not in PROMOTED_ADMINS:
-        PROMOTED_ADMINS[chat_id] = []
+    data = await promoted_db.find_one({"chat_id": chat_id})
 
-    if user_id not in PROMOTED_ADMINS[chat_id]:
-        PROMOTED_ADMINS[chat_id].append(user_id)
+    if not data:
+        await promoted_db.insert_one({
+            "chat_id": chat_id,
+            "admins": [user_id]
+        })
+        return
 
+    if user_id not in data["admins"]:
+        await promoted_db.update_one(
+            {"chat_id": chat_id},
+            {"$push": {"admins": user_id}}
+        )
+
+
+# REMOVE PROMOTED ADMIN
 
 async def remove_promoted(chat_id, user_id):
 
-    if chat_id in PROMOTED_ADMINS:
-        if user_id in PROMOTED_ADMINS[chat_id]:
-            PROMOTED_ADMINS[chat_id].remove(user_id)
+    await promoted_db.update_one(
+        {"chat_id": chat_id},
+        {"$pull": {"admins": user_id}}
+    )
 
+
+# CHECK PROMOTED
 
 async def is_promoted(chat_id, user_id):
 
-    if chat_id in PROMOTED_ADMINS:
-        return user_id in PROMOTED_ADMINS[chat_id]
+    data = await promoted_db.find_one({"chat_id": chat_id})
 
-    return False
+    if not data:
+        return False
 
+    return user_id in data["admins"]
+
+
+# GET PROMOTED ADMINS
 
 async def get_promoted(chat_id):
 
-    return PROMOTED_ADMINS.get(chat_id, [])
+    data = await promoted_db.find_one({"chat_id": chat_id})
+
+    if not data:
+        return []
+
+    return data["admins"]
