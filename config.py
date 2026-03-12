@@ -1,32 +1,23 @@
-# ================= BOT =================
-
-BOT_TOKEN=your_bot_token_here
-BOT_NAME=StrawHatManagerBot
-BOT_USERNAME=StrawHatManagerBot
+import os
 
 
-# ================= OWNER =================
+# ================= TELEGRAM ================= #
 
-OWNER_ID=123456789
-
-
-# ================= DATABASE =================
-
-MONGO_URL=mongodb+srv://username:password@cluster.mongodb.net/?retryWrites=true&w=majority
-DATABASE_NAME=StrawHatManagerBot
+API_ID = int(os.getenv("API_ID", 0))
+API_HASH = os.getenv("API_HASH", "")
+BOT_TOKEN = os.getenv("BOT_TOKEN", "")
 
 
-# ================= SUPPORT =================
+# ================= OWNER ================= #
 
-SUPPORT_CHANNEL=https://t.me/your_channel
-SUPPORT_GROUP=https://t.me/your_group
-LOG_GROUP=
+OWNER_ID = int(os.getenv("OWNER_ID", 0))
 
 
-# ================= MEDIA APIs =================
+# ================= LOG GROUP ================= #
 
-OPENAI_API_KEY=your_openai_api_key
+LOG_GROUP = int(os.getenv("LOG_GROUP", 0))
 
-# ================= BOT START IMAGE =================
 
-START_IMAGE=https://graph.org/file/example.jpg
+# ================= DATABASE ================= #
+
+MONGO_URL = os.getenv("MONGO_URL", "")
