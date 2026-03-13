@@ -1,7 +1,6 @@
-import time
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
-from telegram.ext import ContextTypes
-from database.users import add_user
+from pyrogram import Client, filters
+from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from database.users_db import add_user
 from utils.uptime import get_uptime
 
 START_IMAGE = "https://files.catbox.moe/45n49c.mp4"
@@ -9,76 +8,62 @@ START_IMAGE = "https://files.catbox.moe/45n49c.mp4"
 SUPPORT = "https://t.me/ANIMEXVERSE"
 CREATOR = "tg://openmessage?user_id=7846306818"
 
-DM_TEXT = """Hey There, {mention}!? This is {mention_of_bot_name}.
 
-This is a powerful group Management bot for managing your group with all the security.
+@Client.on_message(filters.command("start"))
+async def start(client, message):
 
-Type /help to know my all commands and how to use me.
-"""
+    user = message.from_user
+    chat = message.chat
 
-GROUP_TEXT = """{mention_of_bot_name} is alive again.
+    bot_username = (await client.get_me()).username
 
-I didn't sleep since - {time_duration}
-"""
-
-
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-
-    bot = context.bot
-    user = update.effective_user
-    chat = update.effective_chat
-
-    bot_username = bot.username
-    mention = f"[{user.first_name}](tg://user?id={user.id})"
+    mention = user.mention
     bot_mention = f"@{bot_username}"
 
-    # ---------------- DM START ----------------
+    # -------- DM START --------
 
     if chat.type == "private":
 
-        add_user(user.id)
+        await add_user(user.id)
 
-        text = DM_TEXT.replace("{mention}", mention)
-        text = text.replace("{mention_of_bot_name}", bot_mention)
+        text = f"""Hey There, {mention}! This is {bot_mention}.
 
-        buttons = [
+This is a powerful group management bot.
 
+Type /help to know my commands.
+"""
+
+        buttons = InlineKeyboardMarkup([
             [
                 InlineKeyboardButton(
                     "➕ Add me in your group",
                     url=f"https://t.me/{bot_username}?startgroup=true"
                 )
             ],
-
             [
                 InlineKeyboardButton("📢 Support Channel", url=SUPPORT),
                 InlineKeyboardButton("👑 Creator", url=CREATOR)
-            ],
-
-            [
-                InlineKeyboardButton("📚 Commands", callback_data="commands")
             ]
-        ]
+        ])
 
-        keyboard = InlineKeyboardMarkup(buttons)
-
-        await update.message.reply_photo(
+        await message.reply_photo(
             photo=START_IMAGE,
             caption=text,
-            parse_mode="Markdown",
-            reply_markup=keyboard
+            reply_markup=buttons
         )
 
-    # ---------------- GROUP START ----------------
+    # -------- GROUP START --------
 
     else:
 
         uptime = get_uptime()
 
-        text = GROUP_TEXT.replace("{mention_of_bot_name}", bot_mention)
-        text = text.replace("{time_duration}", uptime)
+        text = f"""{bot_mention} is alive again.
 
-        buttons = [
+I didn't sleep since - {uptime}
+"""
+
+        buttons = InlineKeyboardMarkup([
             [
                 InlineKeyboardButton(
                     "➕ Add Me",
@@ -86,12 +71,10 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 ),
                 InlineKeyboardButton("📢 Support Channel", url=SUPPORT)
             ]
-        ]
+        ])
 
-        keyboard = InlineKeyboardMarkup(buttons)
-
-        await update.message.reply_photo(
+        await message.reply_photo(
             photo=START_IMAGE,
             caption=text,
-            reply_markup=keyboard
+            reply_markup=buttons
         )
