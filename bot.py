@@ -30,9 +30,10 @@ def load_modules():
 
     for folder in MODULE_FOLDERS:
 
-        path = folder.replace(".", "/")
+        path = folder.replace(".", os.sep)
 
         if not os.path.isdir(path):
+            print(f"Folder not found: {path}")
             continue
 
         for file in os.listdir(path):
@@ -60,13 +61,19 @@ def load_modules():
 
 async def main():
 
-    load_modules()
+    try:
 
-    await app.start()
+        load_modules()
 
-    print("StrawHatManagerBot Started Successfully")
+        await app.start()
 
-    await idle()
+        print("StrawHatManagerBot Started Successfully")
+
+        await idle()
+
+    except Exception as e:
+
+        print("BOT CRASHED →", e)
 
 
 if __name__ == "__main__":
